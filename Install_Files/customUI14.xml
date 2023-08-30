@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="RibbonControl.Onload">
+  <ribbon>
+    <tabs>
+      <tab id="CustomTab1" label="DISARM">
+        <group id="CustGrp1r" label="Insert Red Tag" >
+            <button id="Btn1c" label="Choose Technique(s)" imageMso="AppointmentColor1"
+                    onAction="RibbonControl.MyBtnMacro" />
+            <button id="Btn1s" label="Search Technique(s)" imageMso="AppointmentColor1"
+                    onAction="RibbonControl.MyBtnMacro" />            
+        </group>
+        <group id="CustGrp1b" label="Insert Blue Tag" >
+            <button id="Btn2c" label="Choose Countermeasure(s)" imageMso="AppointmentColor2"
+                    onAction="RibbonControl.MyBtnMacro" />
+            <button id="Btn2s" label="Search Countermeasure(s)" imageMso="AppointmentColor2"
+                    onAction="RibbonControl.MyBtnMacro" />
+        </group>
+        <group id="CustGrp2" label="Summaries" >
+            <button id="Btn4" label="Insert Summary Red Table" imageMso="AccessFormDatasheet"
+                    onAction="RibbonControl.MyBtnMacro" />
+            <button id="Btn5" label="Insert Summary Blue Table" imageMso="CreateTable"
+                    onAction="RibbonControl.MyBtnMacro" />
+        </group> 
+        <group id="CustGrp3" label="Graphics" >
+            <button id="Btn3" label="Insert Summary Red Graphic" imageMso="OrganizationChartInsert"
+                    onAction="RibbonControl.MyBtnMacro" />
+        </group> 
+        <group id="CustGrp4" label="Format Red" >
+            <button id="Btn6r" label="Red Tag" imageMso="ControlLineColorPicker"
+                    onAction="RibbonControl.MyBtnMacro" />
+            <button id="Btn6g" label="Red Graphic" imageMso="ShapeFillColorPicker"
+                    onAction="RibbonControl.MyBtnMacro" />
+        </group>
+        <group id="CustGrp5" label="Format Blue" >
+            <button id="Btn6b" label="Blue Tag" imageMso="ControlLineColorPicker"
+                    onAction="RibbonControl.MyBtnMacro" />
+        </group>
+        <group id="CustGrp6" label="History" >
+            <button id="Btn7" label="Clear History" imageMso="TableDelete"
+                    onAction="RibbonControl.MyBtnMacro" />
+            <button id="Btn8" label="Delete Tag(s) from History" imageMso="DeleteCells2"
+                    onAction="RibbonControl.MyBtnMacro" />
+        </group>
+        <group id="CustGrp7" label="Frameworks" >
+            <button id="Btn9" label="Explorer" imageMso="TableInsert"
+                    onAction="RibbonControl.MyBtnMacro" />
+            <button id="Btn10" label="Navigator" imageMso="TableFind"
+                    onAction="RibbonControl.MyBtnMacro" />
+        </group>
+        <group id="CustGrp8" label="Development" >
+            <button id="Btn11" label="GitHub" imageMso="CodeEdit"
+                    onAction="RibbonControl.MyBtnMacro" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>

@@ -2805,9 +2805,6 @@ With oWS_SummaryRedGraphic
             oRngCell.ClearFormats
         End If
     Next
-    ' Now remove table to get rid of grey lines
-    .ListObjects.Item(1).TableStyle = ""
-    
 End With
 
 Application.ScreenUpdating = True

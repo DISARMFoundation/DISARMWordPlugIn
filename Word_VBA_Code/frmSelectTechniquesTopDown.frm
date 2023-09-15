@@ -43,7 +43,7 @@ PushCallStack "1stPhases_Change"
 'Define the static variable tactics
 strPlan = "Plan Strategy|Plan Objectives|Target Audience Analysis"
 strPrepare = "Develop Narratives|Develop Content|Establish Social Assets|Establish Legitimacy|Microtarget|Select Channels and Affordances"
-strExecute = "Conduct Pump Priming|Deliver Content|Maximize Exposure|Drive Online Harms|Drive Offline Activity|Persist in the Information Environment"
+strExecute = "Conduct Pump Priming|Deliver Content|Maximise Exposure|Drive Online Harms|Drive Offline Activity|Persist in the Information Environment"
 strAssess = "Assess Effectiveness"
 lstTactics.Clear
 

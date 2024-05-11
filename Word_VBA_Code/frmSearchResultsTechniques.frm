@@ -4,7 +4,7 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmSearchResultsTechniques
    ClientHeight    =   8730.001
    ClientLeft      =   120
    ClientTop       =   465
-   ClientWidth     =   16440
+   ClientWidth     =   13290
    OleObjectBlob   =   "frmSearchResultsTechniques.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -37,18 +37,87 @@ Private Sub UserForm_Initialize()
 If gcHandleProcErrors Then On Error GoTo PROC_ERR
 PushCallStack "UserForm_Initialize"
 
+'
+' Initialize the list view for the results of the search
+'
+
+With Me.lstTechniques2
+    .View = lvwReport
+    .FullRowSelect = True
+    .MultiSelect = True
+    .LabelEdit = lvwManual
+    .ColumnHeaders.Add , , "Phase", 50 'phase name
+    .ColumnHeaders.Add , , "Tactic", 200 'tactic name
+    .ColumnHeaders.Add , , "ID", 50 'technique ID
+    .ColumnHeaders.Add , , "Technique", 321 'technique name
+    .ColumnHeaders.Add , , "", 1 'technique summary - not shown in the list but available for the text box
+    .ListItems.Clear
+End With
+
 'e.g. modMain.FillListTechniques "*Narrative*", "Prepare", "Develop Narratives", ListBoxTechniques
-modMain.FillListTechniques gstrSearchTerm, gstrPhaseName, gstrTacticName, lstTechniques
+modMain.FillListTechniques2 gstrSearchTerm, gstrPhaseName, gstrTacticName, lstTechniques2
     
+' Following code positions dialog box in the same monitor screen as the word document
+' see https://www.thespreadsheetguru.com/vba/launch-vba-userforms-in-correct-window-with-dual-monitors
+' By default do not show the complete form with all the details
+
 Me.StartUpPosition = 0
 Me.Left = Application.Left + (0.5 * Application.Width) - (0.5 * Me.Width)
 Me.Top = Application.Top + (0.5 * Application.Height) - (0.5 * Me.Height)
+Me.chkDetails = False
+Me.Height = 320
 
 '
 ' Save Tagging Workbook
 '
 
 modMain.SaveTaggingWorkbook
+
+PROC_EXIT:
+  PopCallStack
+  Exit Sub
+
+PROC_ERR:
+  GlobalErrHandler
+  Resume PROC_EXIT
+End Sub
+
+Private Sub chkDetails_Click()
+
+'
+' If the user has checked the details checkbox then display the full user form
+'
+
+If gcHandleProcErrors Then On Error GoTo PROC_ERR
+PushCallStack "chkDetails_Click"
+
+If chkDetails.Value = True Then
+    Me.Height = 433
+Else
+    Me.Height = 320
+End If
+
+PROC_EXIT:
+  PopCallStack
+  Exit Sub
+
+PROC_ERR:
+  GlobalErrHandler
+  Resume PROC_EXIT
+End Sub
+
+Private Sub lstTechniques2_ItemClick(ByVal Item As MSComctlLib.ListItem)
+
+'
+' If the user has clicked on a technique then fill in the text boxes below.
+'
+
+If gcHandleProcErrors Then On Error GoTo PROC_ERR
+PushCallStack "lstTechniques2_ItemClick"
+
+Me.txtTechniqueID = Item.ListSubItems(2).Text 'technique ID
+Me.txtTechniqueName = Item.ListSubItems(3).Text 'technique name
+Me.txtSummary = Item.ListSubItems(4).Text 'technique summary
 
 PROC_EXIT:
   PopCallStack
@@ -103,19 +172,14 @@ Dim varPos As Long
 Tag = " ("
 j = 0
 
-arrResult = modFunctions.fcnSelectedItems(Controls("lstTechniques"))
-If modFunctions.IsArrayAllocated(arrResult) Then
-
-    For m_lngIndex = 0 To UBound(arrResult, 1)
-
-        strTacticName = arrResult(m_lngIndex, 1)
+For i = 1 To lstTechniques2.ListItems.Count
+    If lstTechniques2.ListItems.Item(i).Selected = True Then
+        strTechniqueID = lstTechniques2.ListItems(i).ListSubItems(2).Text ' technique ID
+        strTechniqueName = lstTechniques2.ListItems(i).ListSubItems(3).Text ' Name
+        strTacticName = lstTechniques2.ListItems(i).ListSubItems(1).Text ' tactic name
         strTacticID = ReturnTacticID(strTacticName)
-        strTechniqueName = arrResult(m_lngIndex, 2)
-        If Right(strTechniqueName, 1) = " " Then
+        If Right(strTechniqueName, 1) = " " Then ' strip trailing spaces
             strTechniqueName = Left(strTechniqueName, Len(strTechniqueName) - 1)
-            strTechniqueID = ReturnTechniqueID(strTechniqueName & " ", strTacticID)
-        Else
-            strTechniqueID = ReturnTechniqueID(strTechniqueName, strTacticID)
         End If
         ' If this is a subtechnique then add the name of the parent technique to the tag and highlight both the subtechnique and parent technique in the graphic
         varPos = InStr(6, strTechniqueID, ".", vbTextCompare)
@@ -139,18 +203,20 @@ If modFunctions.IsArrayAllocated(arrResult) Then
         End If
         Tag = Tag & strTechniqueTitle
         Tag = Tag & " [" & strTechniqueID & "]"
-    
-    Next m_lngIndex
-Else
-    '
-    ' If no techniques have been selected then prompt the user to select at least one
-    '
+    End If
+Next i
+
+Tag = Tag & ")"
+
+'
+' If no techniques selected prompt user to choose at least one
+'
+
+If j = 0 Then
     Dim intMsgReturn As Integer
     intMsgReturn = MsgBox("Please select one or more techniques", vbOKCancel + vbInformation, "DISARM: Search Results")
     GoTo PROC_EXIT
 End If
-
-Tag = Tag & ")"
 
 '
 ' Save Tagging Workbook
@@ -190,69 +256,6 @@ PushCallStack "cmdCancel_Click"
   
 Unload Me
 
-PROC_EXIT:
-  PopCallStack
-  Exit Sub
-
-PROC_ERR:
-  GlobalErrHandler
-  Resume PROC_EXIT
-End Sub
-
-Private Sub cmdPhase_Click()
-
-'
-' Sort techniques by phase
-'
-  If gcHandleProcErrors Then On Error GoTo PROC_ERR
-  PushCallStack "cmdPhase_Click"
-  
-  'Pass listbox, sort column number, alphabeticall(True)/numerically(False), Ascending(True)/Descending(False)
-  
-  modFunctions.SortListBox lstTechniques, 1, True, True
-   
-PROC_EXIT:
-  PopCallStack
-  Exit Sub
-
-PROC_ERR:
-  GlobalErrHandler
-  Resume PROC_EXIT
-End Sub
-
-Private Sub cmdTactic_Click()
-
-'
-' Sort techniques by tactic name
-'
-  If gcHandleProcErrors Then On Error GoTo PROC_ERR
-  PushCallStack "cmdTactic_Click"
-  
-  'Pass listbox, sort column number, alphabeticall(True)/numerically(False), Ascending(True)/Descending(False)
-  
-  modFunctions.SortListBox lstTechniques, 2, True, True
-   
-PROC_EXIT:
-  PopCallStack
-  Exit Sub
-
-PROC_ERR:
-  GlobalErrHandler
-  Resume PROC_EXIT
-End Sub
-
-Private Sub cmdTechnique_Click()
-
-'
-' Sort techniques by technique name
-'
-  If gcHandleProcErrors Then On Error GoTo PROC_ERR
-  PushCallStack "cmdTechnique_Click"
-  
-  'Pass listbox, sort column number, alphabeticall(True)/numerically(False), Ascending(True)/Descending(False)
-  
-  modFunctions.SortListBox lstTechniques, 3, True, True
-   
 PROC_EXIT:
   PopCallStack
   Exit Sub

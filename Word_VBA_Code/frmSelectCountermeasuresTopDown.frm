@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmSelectCountermeasuresTopDown 
    Caption         =   "DISARM: Insert Tag from Blue Framework"
-   ClientHeight    =   4485
+   ClientHeight    =   8655.001
    ClientLeft      =   120
    ClientTop       =   465
-   ClientWidth     =   14430
+   ClientWidth     =   13920
    OleObjectBlob   =   "frmSelectCountermeasuresTopDown.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -53,17 +53,48 @@ arrMetatechniques(11) = "Cleaning"
 arrMetatechniques(12) = "Targeting"
 arrMetatechniques(13) = "Reduce Resources"
 
+'
+' Load images for warning triangles into image list.
+' See VBA A2Z, "Working with ListView Control in Excel VBA", at https://www.youtube.com/watch?v=U1sQ1-Oa0fs
+'
+
+With imlWarningTriangles.ListImages
+     .Add , , LoadPicture(ThisDocument.Path & "\st_green.bmp")
+     .Add , , LoadPicture(ThisDocument.Path & "\st_orange.bmp")
+     .Add , , LoadPicture(ThisDocument.Path & "\st_red.bmp")
+End With
+
 With lstMetatechniques
     .MultiSelect = fmMultiSelectSingle
     .List = arrMetatechniques
 End With
 
+'
+' Initialize the list view. The width of the form shows only the countermeasure name and ethics triangle
+'
+
+With Me.lstCountermeasures2
+    .View = lvwReport
+    .FullRowSelect = True
+    .MultiSelect = True
+    .LabelEdit = lvwManual
+    .ColumnHeaders.Add , , "Countermeasure", 290
+    .ColumnHeaders.Add , , "Ethics", 30
+    .ColumnHeaders.Add , , "", 1
+    .ColumnHeaders.Add , , "", 1
+    .ListItems.Clear
+    .SmallIcons = imlWarningTriangles
+End With
+
 ' following code positions dialog box in the same monitor screen as the word document
 ' see https://www.thespreadsheetguru.com/vba/launch-vba-userforms-in-correct-window-with-dual-monitors
+' by default do not show the complete form with all the details
 
 Me.StartUpPosition = 0
 Me.Left = Application.Left + (0.5 * Application.Width) - (0.5 * Me.Width)
 Me.Top = Application.Top + (0.5 * Application.Height) - (0.5 * Me.Height)
+Me.chkDetails = False
+Me.Height = 253
 
 PROC_EXIT:
   PopCallStack
@@ -89,7 +120,31 @@ PushCallStack "lstMetatechniques_Change"
 
 CheckReadyToTag
 
-If Not IsNull(lstMetatechniques.Value) Then modMain.LoadCountersFromExcel lstCountermeasures, lstMetatechniques.Value
+'If Not IsNull(lstMetatechniques.Value) Then modMain.LoadCountersFromExcel lstCountermeasures, lstMetatechniques.Value
+If Not IsNull(lstMetatechniques.Value) Then modMain.LoadCountersFromExcel2 lstCountermeasures2, lstMetatechniques.Value
+
+PROC_EXIT:
+  PopCallStack
+  Exit Sub
+
+PROC_ERR:
+  GlobalErrHandler
+  Resume PROC_EXIT
+End Sub
+Private Sub chkDetails_Click()
+
+'
+' If the user has checked the details checkbox then display the full user form
+'
+
+If gcHandleProcErrors Then On Error GoTo PROC_ERR
+PushCallStack "chkDetails_Click"
+
+If chkDetails.Value = True Then
+    Me.Height = 468
+Else
+    Me.Height = 253
+End If
 
 PROC_EXIT:
   PopCallStack
@@ -100,11 +155,45 @@ PROC_ERR:
   Resume PROC_EXIT
 End Sub
 
+Private Sub lstCountermeasures2_ItemClick(ByVal Item As MSComctlLib.ListItem)
+
+'
+' If the user has clicked on a countermeasure then fill in the details. Set ethics rating and color.
+'
+
+If gcHandleProcErrors Then On Error GoTo PROC_ERR
+PushCallStack "lstCountermeasures2_ItemClick"
+
+Me.txtCounter = Item.Text 'name
+If Item.ListSubItems(2).Text = "g" Then
+    Me.txtEthicsRating.BackColor = vbGreen
+    Me.txtEthicsRating = "largely unproblematic"
+ElseIf Item.ListSubItems(2).Text = "o" Then
+    Me.txtEthicsRating.BackColor = RGB(255, 165, 0)
+    Me.txtEthicsRating = "potentially problematic"
+ElseIf Item.ListSubItems(2).Text = "r" Then
+    Me.txtEthicsRating.BackColor = vbRed
+    Me.txtEthicsRating = "highly problematic"
+Else
+    Me.txtEthicsRating.BackColor = vbNone
+    Me.txtEthicsRating = ""
+End If
+Me.txtGuidance = Item.ListSubItems(3).Text 'ethics
+Me.txtSummary = Item.ListSubItems(4).Text 'summary
+
+PROC_EXIT:
+  PopCallStack
+  Exit Sub
+
+PROC_ERR:
+  GlobalErrHandler
+  Resume PROC_EXIT
+End Sub
 Private Sub cmdSelectCountermeasures_Click()
 
 '
 ' Add selected countermeasure(s) to sheet SummaryBlueUnformatted. Create and insert the tag with those
-' countermeasures into te Word document.
+' countermeasures into the Word document.
 '
 
 Dim Tag As String
@@ -147,9 +236,9 @@ strCountermeasureSentence = ReturnCountermeasureSentence(lngCountermeasureSenten
 Dim strCountermeasureTitle As String
 Tag = " ("
 j = 0
-For i = 1 To lstCountermeasures.ListCount
-    If lstCountermeasures.Selected(i - 1) = True Then
-        strCountermeasureName = lstCountermeasures.List(i - 1)
+For i = 1 To lstCountermeasures2.ListItems.Count
+    If lstCountermeasures2.ListItems.Item(i).Selected = True Then
+        strCountermeasureName = lstCountermeasures2.ListItems(i).Text
         strCountermeasureID = ReturnCountermeasureID(strCountermeasureName, strMetatechniqueID)
         modMain.InsertRowSummaryBlueUnformatted strMetatechniqueID, strMetatechniqueName, strCountermeasureID, strCountermeasureName, strCountermeasureSentence, lngCountermeasureSentenceIndex
         ' Now create the inline tag

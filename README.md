@@ -7,6 +7,7 @@ It offers an easy way to tag or map adversary behaviors and defender mitigations
 The Plug-In keeps a running history of your tags so that you can insert summaries into your document in tabular or graphical format.
 To install the Plug-In download and run the MSI file [Install_Files\DISARM_Word_PlugIn.msi](https://github.com/DISARMFoundation/DISARMWordPlugIn/blob/main/Install_Files/DISARM_Word_PlugIn.msi). This installs a macro-enabled global template into the Word STARTUP 
 directory and two Excel files into the Excel XLSTART directory in your user profile. These files will be automatically loaded the next time you start Word.
+To uninstall the Plug-In press the Windows Start key then select Settings->Apps and scroll down until you see DISARM. Make sure you exit Microsoft Word before uninstalling the Plug-In. 
 The Plug-In functionality is available from the DISARM menu option in the Microsoft Word ribbon.  
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.

@@ -66,10 +66,14 @@ Dim strPrefix As String
         strPrefix = modMain.DISARM_Name()
         modMain.Register_Event_Handler
         DISARM.SearchCountermeasures
-    Case Is = "Btn3"
+    Case Is = "Btn3g"
         strPrefix = modMain.DISARM_Name()
         modMain.Register_Event_Handler
         DISARM.InsertSummaryRedGraphic
+    Case Is = "Btn3n"
+        strPrefix = modMain.DISARM_Name()
+        modMain.Register_Event_Handler
+        DISARM.CreateNavigatorFile
     Case Is = "Btn4"
         strPrefix = modMain.DISARM_Name()
         modMain.Register_Event_Handler
@@ -90,6 +94,10 @@ Dim strPrefix As String
         strPrefix = modMain.DISARM_Name()
         modMain.Register_Event_Handler
         DISARM.FormatRedGraphic
+    Case Is = "Btn6p"
+        strPrefix = modMain.DISARM_Name()
+        modMain.Register_Event_Handler
+        DISARM.SpecifyLocationForNavigatorFiles
     Case Is = "Btn7"
         strPrefix = modMain.DISARM_Name()
         modMain.Register_Event_Handler

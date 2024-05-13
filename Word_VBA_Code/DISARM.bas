@@ -255,10 +255,164 @@ Selection.InsertBreak Type:=wdPageBreak
 If Selection.PageSetup.Orientation = wdOrientLandscape Then
     Selection.PageSetup.Orientation = wdOrientPortrait
 End If
+
 Selection.PasteSpecial Link:=False, DataType:=wdPasteEnhancedMetafile, _
         Placement:=wdInLine, DisplayAsIcon:=False
 
 modMain.AddSpace
+
+PROC_EXIT:
+  PopCallStack
+  Exit Sub
+
+PROC_ERR:
+  GlobalErrHandler
+  Resume PROC_EXIT
+End Sub
+Sub SpecifyLocationForNavigatorFiles()
+
+'
+' Allow user to specify or change the location for storing JSON files for the DISARM Navigator
+'
+
+Dim JSONDirectory As String
+Dim fso3 As New FileSystemObject
+Dim oFD As FileDialog
+Dim intMsgReturn As Integer
+
+If gcHandleProcErrors Then On Error GoTo PROC_ERR
+PushCallStack "SpecifyLocationForNavigatorFiles"
+
+'
+' Look up the worksheet "User Profile" to determine the current location
+'
+
+JSONDirectory = ReturnUserProfile("JSON_Directory")
+If JSONDirectory = "" Or Not fso3.FolderExists(JSONDirectory) Then 'No location specified or location does not exist
+    Set oFD = Application.FileDialog(msoFileDialogFolderPicker)
+    oFD.Title = "Choose a Location to Save JSON files for the DISARM Navigator"
+    oFD.ButtonName = "Choose"
+    oFD.InitialFileName = Environ("USERPROFILE") & "\"     'sets the folder e.g. C:\Users\steph\
+    oFD.InitialView = msoFileDialogViewLargeIcons
+    
+    With oFD
+        If .Show = -1 Then 'if OK is pressed
+            Call SetUserProfile("JSON_Directory", .SelectedItems(1))
+            intMsgReturn = MsgBox("Location for DISARM Navigator layer files is " & .SelectedItems(1) & ".", _
+                vbOKCancel + vbInformation, "DISARM: Specify Location for Navigator Files")
+        Else
+            GoTo PROC_EXIT ' If user cancels then we do not know where to save the JSON file so exit
+        End If
+    End With
+Else
+    intMsgReturn = MsgBox("Files for the DISARM Navigator are currently saved to " & JSONDirectory & ". Would you like to choose a different location?", _
+               vbYesNoCancel, "DISARM: Specify Location for Navigator Files")
+    If intMsgReturn = vbYes Then
+        Set oFD = Application.FileDialog(msoFileDialogFolderPicker)
+        oFD.Title = "Choose a Location to Save JSON files for the DISARM Navigator"
+        oFD.ButtonName = "Choose"
+        oFD.InitialFileName = Environ("USERPROFILE") & "\"     'sets the folder e.g. C:\Users\steph\
+        oFD.InitialView = msoFileDialogViewLargeIcons
+        
+        With oFD
+            If .Show = -1 Then 'if OK is pressed
+                Call SetUserProfile("JSON_Directory", .SelectedItems(1))
+                intMsgReturn = MsgBox("Location for DISARM Navigator layer files is now " & .SelectedItems(1) & ".", _
+                    vbOKCancel + vbInformation, "DISARM: Specify Location for Navigator Files")
+            Else
+                GoTo PROC_EXIT ' If user cancels then we do not know where to save the JSON file so exit
+            End If
+        End With
+    Else
+        GoTo PROC_EXIT
+    End If
+End If
+
+PROC_EXIT:
+  PopCallStack
+  Exit Sub
+
+PROC_ERR:
+  GlobalErrHandler
+  Resume PROC_EXIT
+End Sub
+Sub CreateNavigatorFile()
+
+'
+' Create a layer file in JSON format for the DISARM Navigator from the techniques tagged by the user for this document
+'
+
+Dim JSON As Object
+Dim JsonVBA As String
+Dim Part1 As String
+Dim Part2 As String
+Dim Part3 As String
+Dim fso As New FileSystemObject
+Dim fso2 As New FileSystemObject
+Dim fso3 As New FileSystemObject
+Dim DocumentName As String
+Dim strFolderPath As String
+Dim tsout As TextStream
+Dim JSONDirectory As String
+Dim sFolder As String
+Dim oFD As FileDialog
+Dim intMsgReturn As Integer
+
+If gcHandleProcErrors Then On Error GoTo PROC_ERR
+PushCallStack "CreateNavigatorFile"
+
+'
+' Look up the worksheet "User Profile" to determine the location where the JSON layer file should be saved
+'
+
+JSONDirectory = ReturnUserProfile("JSON_Directory")
+If JSONDirectory = "" Or Not fso3.FolderExists(JSONDirectory) Then 'No location specified or location does not exist
+    Set oFD = Application.FileDialog(msoFileDialogFolderPicker)
+    oFD.Title = "Choose a Location to Save JSON files for the DISARM Navigator"
+    oFD.ButtonName = "Choose"
+    oFD.InitialFileName = Environ("USERPROFILE") & "\"     'sets the folder e.g. C:\Users\steph\
+    oFD.InitialView = msoFileDialogViewLargeIcons
+    
+    With oFD
+        If .Show = -1 Then 'if OK is pressed
+            strFolderPath = .SelectedItems(1)
+            Call SetUserProfile("JSON_Directory", .SelectedItems(1))
+        Else
+            GoTo PROC_EXIT ' If user cancels then we do not know where to save the JSON file so exit
+        End If
+    End With
+Else
+    strFolderPath = JSONDirectory ' location specified and exists
+End If
+
+DocumentName = fso2.GetBaseName(Application.ActiveDocument.Name) ' Use the same name for the .json file as the Word document
+
+' Pre-amble contains name of the layer plus some parameters for the ATT&CK Navigator
+Part1 = "{""name"":""" & DocumentName & """,""versions"":{""attack"":""1"",""navigator"":""4.8.2"",""layer"":""4.4""}," & _
+"""domain"":""DISARM"",""description"":"""",""filters"":{""platforms"":[""Windows"",""Linux"",""Mac""]}" & _
+"""sorting"":0,""layout"":{""layout"":""flat"",""aggregateFunction"":""average"",""showID"":true,""showName"":true," & _
+"""showAggregateScores"":false,""countUnscored"":false},""hideDisabled"":false,""techniques"":["
+
+' The next part contains the JSON for all the active techniques tagged by the user
+Part2 = ReturnJSONforTaggedTechniques
+
+If Part2 = "" Then GoTo PROC_EXIT
+
+' The postscript contains some formatting parameters for the ATT&CK Navigator
+Part3 = "],""gradient"":{""colors"":[""#ff6666ff"",""#ffe766ff"",""#8ec843ff""],""minValue"":0,""maxValue"":100},""legendItems"":[],""metadata"":[]," & _
+"""links"":[],""showTacticRowBackground"":false,""tacticRowBackground"":""#dddddd"",""selectTechniquesAcrossTactics"":true,""selectSubtechniquesWithParent"":false}"
+
+' Now combine all three parts
+JsonVBA = Part1 & Part2 & Part3
+
+' Create a JSON Object from the JsonVBA string, convert this to pretty print JSON, then write to file
+Set JSON = JsonConverter.ParseJson(JsonVBA)
+Set tsout = fso.CreateTextFile(strFolderPath & "\" & DocumentName & ".json")
+Call tsout.WriteLine(JsonConverter.ConvertToJson(JSON, Whitespace:=2))
+
+' Inform user that file created successfully
+intMsgReturn = MsgBox("DISARM Navigator layer file " & strFolderPath & "\" & DocumentName & ".json created successfully", _
+               vbOKCancel + vbInformation, "DISARM: Create Navigator File")
 
 PROC_EXIT:
   PopCallStack

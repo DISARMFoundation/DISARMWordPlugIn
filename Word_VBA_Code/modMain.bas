@@ -1135,7 +1135,7 @@ Case "TA14"
 Case "TA06"
     ReturnJSONTactic = "develop-content"
 Case "TA15"
-    ReturnJSONTactic = "establish-social-assets"
+    ReturnJSONTactic = "establish-assets"
 Case "TA16"
     ReturnJSONTactic = "establish-legitimacy"
 Case "TA05"
@@ -3788,6 +3788,11 @@ PushCallStack "Update_DISARM_Red"
 '
 Application.EnableCancelKey = wdCancelInterrupt
 
+If oApp Is Nothing Then
+    modMain.InitializeExcelAndOpenWorkbooks
+    modMain.CreateTaggingSheets
+End If
+
 Dim arrPhaseTask As Variant
 arrPhaseTask = ReturnPhaseTaskArray()
 
@@ -3803,8 +3808,8 @@ End If
 ' Clear contents of all existing techniques
 '
 
-Set oWS_DISARM_Red_with_IDs = oWB_TaggingWorkbook.Sheets("DISARM Red with IDs")
-Set oWS_DISARM_Red_no_IDs = oWB_TaggingWorkbook.Sheets("DISARM Red no IDs")
+Set oWS_DISARM_Red_with_IDs = oWB_TaggingWorkbook.Sheets("My DISARM Red with IDs")
+Set oWS_DISARM_Red_no_IDs = oWB_TaggingWorkbook.Sheets("My DISARM Red no IDs")
 
 For i = 1 To 16
     For k = 3 To oWS_DISARM_Red_with_IDs.UsedRange.Rows.Count
@@ -3849,6 +3854,10 @@ For i = 1 To 16
     Next j
 Next i
 
+Call FormatMatrix("My DISARM Red no IDs")
+Call FormatMatrix("My DISARM Red with IDs")
+oWB_TaggingWorkbook.Save
+    
 PROC_EXIT:
   PopCallStack
   Exit Sub
@@ -3857,3 +3866,94 @@ PROC_ERR:
   GlobalErrHandler
   Resume PROC_EXIT
 End Sub
+Sub FormatMatrix(shtName As String)
+
+Dim Target As Excel.Range
+Dim shp As Excel.Shape
+Dim oWS As Excel.Worksheet
+     
+Set oWS = oWB_TaggingWorkbook.Worksheets(shtName)
+For Each Target In oWS.UsedRange
+    With Target
+        If Not IsEmpty(Target.Value) Then
+            'Set shp = ActiveSheet.Shapes.AddShape(msoShapeRoundedRectangle, .Left, .Top, .Width, .Height)
+            If .Row = 1 Then
+                If .Column = 1 Or .Column = 4 Or .Column = 10 Or .Column = 16 Then
+                    With .MergeArea
+                        Set shp = oWS.Shapes.AddShape(msoShapeRoundedRectangle, .Left, .Top, .Width, .Height)
+                        .Borders.LineStyle = xlNone
+                    End With
+                    shp.Fill.ForeColor.RGB = 10498160
+                    shp.TextFrame.Characters.Text = .Value
+                    shp.TextFrame.Characters.Font.ColorIndex = 2
+                    shp.TextFrame.Characters.Font.Name = "Arial"
+                    shp.TextFrame.Characters.Font.Size = 10
+                    shp.TextFrame.Characters.Font.Bold = True
+                    shp.TextFrame.HorizontalAlignment = xlHAlignCenter
+                    shp.TextFrame.VerticalAlignment = xlVAlignCenter
+                End If
+            ElseIf .Row = 2 Then
+                Set shp = oWS.Shapes.AddShape(msoShapeRoundedRectangle, .Left, .Top, .Width, .Height)
+                shp.Fill.ForeColor.RGB = 12611584
+                shp.TextFrame.Characters.Text = .Value
+                shp.TextFrame.Characters.Font.ColorIndex = 2
+                shp.TextFrame.Characters.Font.Name = "Arial"
+                shp.TextFrame.Characters.Font.Size = 10
+                shp.TextFrame.Characters.Font.Bold = True
+                shp.TextFrame.HorizontalAlignment = xlHAlignCenter
+                shp.TextFrame.VerticalAlignment = xlVAlignCenter
+            Else
+                Set shp = oWS.Shapes.AddShape(msoShapeRoundedRectangle, .Left, .Top, .Width, .Height)
+                shp.Fill.Visible = msoFalse
+                .HorizontalAlignment = xlHAlignCenter
+                .VerticalAlignment = xlVAlignCenter
+            End If
+            .Borders.LineStyle = xlNone
+            Set shp = Nothing
+            If .Row = 1 Then
+                .Interior.Color = 16777215
+                '.Interior.Color = 10498160
+            ElseIf .Row = 2 Then
+                .Interior.Color = 16777215
+                '.Interior.Color = 12611584
+            End If
+        Else
+            .Interior.Color = 16777215
+            .Borders.LineStyle = xlNone
+        End If
+        
+    End With
+Next Target
+
+End Sub
+
+Sub AddArrows()
+     
+    Dim Target As Excel.Range
+    Dim shp As Excel.Shape
+     
+    For Each Target In ActiveSheet.UsedRange
+        With Target.Offset(0, 1)
+            Select Case Target.Value
+            Case 1
+                Set shp = ActiveSheet.Shapes.AddShape(msoShapeFlowchartPunchedTape, .Left, .Top, .Width, .Height)
+                shp.Fill.ForeColor.RGB = RGB(255, 192, 0)
+            Case 2
+                Set shp = ActiveSheet.Shapes.AddShape(msoShapeChevron, .Left, .Top, .Width, .Height)
+                shp.Fill.ForeColor.RGB = RGB(112, 173, 71)
+            Case 3
+                Set shp = ActiveSheet.Shapes.AddShape(msoShapeOval, .Left, .Top, .Width, .Height)
+                shp.Fill.ForeColor.RGB = RGB(31, 78, 121)
+            Case 4
+                Set shp = ActiveSheet.Shapes.AddShape(msoShapeRoundedRectangle, .Left, .Top, .Width, .Height)
+                shp.Fill.ForeColor.RGB = RGB(255, 192, 0)
+            End Select
+            
+        End With
+        Set shp = Nothing
+    Next Target
+     
+    Set Target = Nothing
+     
+End Sub
+

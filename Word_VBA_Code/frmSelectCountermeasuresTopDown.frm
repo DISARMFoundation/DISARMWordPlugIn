@@ -59,9 +59,12 @@ arrMetatechniques(13) = "Reduce Resources"
 '
 
 With imlWarningTriangles.ListImages
-     .Add , , LoadPicture(ThisDocument.Path & "\st_green.bmp")
-     .Add , , LoadPicture(ThisDocument.Path & "\st_orange.bmp")
-     .Add , , LoadPicture(ThisDocument.Path & "\st_red.bmp")
+     '.Add , , LoadPicture(ThisDocument.Path & "\st_green.bmp")
+     '.Add , , LoadPicture(ThisDocument.Path & "\st_orange.bmp")
+     '.Add , , LoadPicture(ThisDocument.Path & "\st_red.bmp")
+     .Add , , imgGreenTriangle.Picture
+     .Add , , imgOrangeTriangle.Picture
+     .Add , , imgRedTriangle.Picture
 End With
 
 With lstMetatechniques

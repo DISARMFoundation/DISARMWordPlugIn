@@ -1,6 +1,15 @@
 # DISARMWordPlugIn
  DISARM Plug-In for Microsoft Word on Windows desktop.
 
+UPDATE July 16 2025.
+**This repository is no longer actively maintained**. We have redesigned the software using JavaScript as an official Add-In for Microsoft Word available in
+the Microsoft Store [here](https://appsource.microsoft.com/en-us/product/office/wa200008045?tab=overview). The official Add-In runs within an isolated
+process which has no access to the local filesystem and is therefore more secure than the DISARM Plug-In for Microsoft Word, which was written using VBA. 
+It also supports Microsoft Word running on MacOS and within standard web browsers. We are in the process of making the source code for the official DISARM Add-In 
+for Microsoft Word available in GitHub, starting with the server code [here](https://github.com/Digiqal-development/disarm-server). We plan to provide bug fix 
+support for the VBA DISARM Plug-In for Microsoft Word until the end of 2025.
+
+------------------------------------------------------------------------------------------------
 The DISARM Word Plug-In supports Microsoft Word 32-bit or 64-bit running on Microsoft Windows 10.
 
 It offers an easy way to tag or map adversary behaviors and defender mitigations in the text of a Word document to techniques and countermeasures in DISARM.
